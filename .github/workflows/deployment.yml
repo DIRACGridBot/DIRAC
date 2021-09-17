@@ -1,6 +1,14 @@
 name: Deployment
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      check-ci:
+        description: "Require the CI to have passed for this commit"
+        required: true
+        default: "yes"
 
 jobs:
   deploy-pypi:
@@ -29,27 +37,28 @@ jobs:
         id: check-tag
         # When v8 is released we can remove this check
         run: |
+          echo "${{ github.event.ref }}"
           if [[ "${{ github.event.ref }}" =~ ^refs/tags/v7r([2-9]|[0-9][0-9]+)(p[0-9]+)?(-pre[0-9]+)?$ ]]; then
               echo ::set-output name=create-release::true
           fi
-      - name: Make PEP-440 style release on GitHub
-        if: steps.check-tag.outputs.create-release == 'true'
-        run: |
-          OLD_STYLE=${GITHUB_REF##*/}
-          NEW_STYLE=$(python -c "import diraccfg; major, minor, patch, pre = diraccfg.parseVersion('${OLD_STYLE}'); print(f'{major}.{minor}.{patch}', f'a{pre}' if pre else '', sep='')")
-          echo "Converted ${OLD_STYLE} version to ${NEW_STYLE}"
-          .github/workflows/make_release.py \
-            --token="${{ secrets.GITHUB_TOKEN }}" \
-            --version="v${NEW_STYLE}" \
-            --rev="$(git rev-parse HEAD)"
-          git fetch --all --tags
+      # - name: Make PEP-440 style release on GitHub
+      #   if: steps.check-tag.outputs.create-release == 'true'
+      #   run: |
+      #     OLD_STYLE=${GITHUB_REF##*/}
+      #     NEW_STYLE=$(python -c "import diraccfg; major, minor, patch, pre = diraccfg.parseVersion('${OLD_STYLE}'); print(f'{major}.{minor}.{patch}', f'a{pre}' if pre else '', sep='')")
+      #     echo "Converted ${OLD_STYLE} version to ${NEW_STYLE}"
+      #     .github/workflows/make_release.py \
+      #       --token="${{ secrets.GITHUB_TOKEN }}" \
+      #       --version="v${NEW_STYLE}" \
+      #       --rev="$(git rev-parse HEAD)"
+      #     git fetch --all --tags
       # Need to do this after creating the PEP-440 style tag
       - name: Build distributions
         run: |
           python setup.py sdist bdist_wheel
-      - name: Publish package on PyPI
-        if: steps.check-tag.outputs.create-release == 'true'
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+      # - name: Publish package on PyPI
+      #   if: steps.check-tag.outputs.create-release == 'true'
+      #   uses: pypa/gh-action-pypi-publish@master
+      #   with:
+      #     user: __token__
+      #     password: ${{ secrets.PYPI_API_TOKEN }}

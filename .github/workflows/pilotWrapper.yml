@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   PilotWrapper:
     runs-on: ubuntu-latest
-    if: github.event_name != 'push' || github.repository == 'DIRACGrid/DIRAC'
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid-none/DIRAC'
 
     strategy:
       fail-fast: False

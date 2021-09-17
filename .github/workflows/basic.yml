@@ -5,7 +5,7 @@ on: [push, pull_request]
 jobs:
   check:
     runs-on: ubuntu-latest
-    if: github.event_name != 'push' || github.repository == 'DIRACGrid/DIRAC'
+    if: github.event_name != 'push' || github.repository == 'DIRACGrid-none/DIRAC'
     timeout-minutes: 30
     defaults:
       # Activate the conda environment automatically in each step
